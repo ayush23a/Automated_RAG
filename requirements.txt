@@ -6,7 +6,7 @@ langchain-ollama
 langchain-community
 langchain-google-genai
 langserve
-
+langchain-chroma
 google-generativeai
 python-dotenv
 
@@ -17,3 +17,4 @@ streamlit
 requests
 
 sse-starlette
+python-multipart
