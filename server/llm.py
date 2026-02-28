@@ -17,7 +17,7 @@ def get_gemini():
         return None
 
     return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-3-flash-preview",
         google_api_key=api_key,
         temperature=0.4
     )
