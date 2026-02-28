@@ -75,6 +75,3 @@ You must run both the API backend and the Streamlit UI simultaneously in separat
 4. Upload documents to bind them specifically to your active Session ID.
 5. Hit **"🗑️ Clear Session & Start Fresh"** anytime to physically delete the vector files and uploaded docs from the server dynamically.
 
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
