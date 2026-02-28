@@ -191,7 +191,18 @@ User Query: {query}
             response = "Error generating response from local model."
             
     if response and hasattr(response, "content"):
-        answer = response.content
+        if isinstance(response.content, list):
+            text_blocks = []
+            for block in response.content:
+                if isinstance(block, dict) and "text" in block:
+                    text_blocks.append(block["text"])
+                elif isinstance(block, str):
+                    text_blocks.append(block)
+                else:
+                    text_blocks.append(str(block))
+            answer = " ".join(text_blocks)
+        else:
+            answer = str(response.content)
     else:
         answer = str(response)
     
