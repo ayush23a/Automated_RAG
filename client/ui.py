@@ -9,9 +9,9 @@ if "session_id" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-st.set_page_config(page_title="RAG Agent MVP", page_icon="📄")
+st.set_page_config(page_title="Project Kriyamān", page_icon="📄")
 
-st.title("📄 RAG Agent MVP")
+st.title("📄 Kriyamān AI")
 st.text(f"Session ID: {st.session_state.session_id}")
 
 # Health check
