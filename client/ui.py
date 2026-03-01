@@ -34,7 +34,7 @@ if st.sidebar.button("🗑️ Clear Session & Start Fresh", use_container_width=
 
 st.sidebar.header("Upload Documents")
 
-# Document upload form
+# Document upload forms
 with st.sidebar.form("upload_form", clear_on_submit=True):
     uploaded_file = st.file_uploader("Upload a PDF to current session", type=["pdf"])
     submitted = st.form_submit_button("Upload")
