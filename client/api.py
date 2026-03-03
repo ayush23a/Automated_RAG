@@ -41,6 +41,52 @@ async def upload_document(
         "session_id": session_id
     }
 
+@app.get('/login')
+def login_with_google():
+    from fastapi.responses import RedirectResponse
+    import urllib.parse
+    
+    CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+    REDIRECT_URI = "http://localhost:8000/auth/callback"
+    
+    params = {
+        "client_id": CLIENT_ID,
+        "redirect_uri": REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "online"
+    }
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
+    return RedirectResponse(url)
+
+@app.get('/auth/callback')
+def auth_callback(code: str):
+    import requests
+    from fastapi.responses import RedirectResponse
+    
+    CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+    CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    REDIRECT_URI = "http://localhost:8000/auth/callback"
+    
+    # Exchange code for token
+    token_response = requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "code": code,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "redirect_uri": REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
+    )
+    res_json = token_response.json()
+    id_token = res_json.get("id_token")
+    
+    if id_token:
+        return RedirectResponse(url=f"http://localhost:8501/?token={id_token}")
+    else:
+        return {"error": "Authentication failed", "details": res_json}
+
 @app.delete("/session/{session_id}")
 def delete_session(session_id: str):
     # Delete uploaded files

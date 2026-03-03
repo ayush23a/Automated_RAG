@@ -1,10 +1,11 @@
 import streamlit as st
 import requests
 import uuid
+import os
 
 # Initialize session state for session ID and chat history
 if "session_id" not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())
+    st.session_state.session_id = None
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -12,7 +13,40 @@ if "chat_history" not in st.session_state:
 st.set_page_config(page_title="Project Kriyamān", page_icon="📄")
 
 st.title("📄 Kriyamān AI")
+
+# Check for authentication token in query params
+if "token" in st.query_params:
+    token = st.query_params["token"]
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        # We decode the token here. For production, pass CLIENT_ID.
+        # idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), os.getenv("GOOGLE_CLIENT_ID"))
+        import jwt # Assuming PyJWT or simple decode is available via jwt library. Actually we have python-jwt? 
+        # python-jwt is different. Let's just hit google tokeninfo.
+        resp = requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}", timeout=5)
+        if resp.status_code == 200:
+            idinfo = resp.json()
+            email = idinfo.get("email")
+            st.session_state.session_id = str(uuid.uuid4()) + "_" + email.split("@")[0]
+            st.session_state.user_email = email
+            # Clean up URL parameter to avoid resubmitting
+            st.query_params.clear()
+        else:
+            st.error("Invalid token.")
+    except Exception as e:
+        st.error(f"Error parsing token: {e}")
+
+if not st.session_state.session_id:
+    st.info("Please login to continue.")
+    # Show login button
+    st.markdown(f'<a href="http://localhost:8000/login" target="_self"><button style="background-color: #4285F4; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Login with Google</button></a>', unsafe_allow_html=True)
+    st.stop()
+
 st.text(f"Session ID: {st.session_state.session_id}")
+if "user_email" in st.session_state:
+    st.success(f"Logged in as {st.session_state.user_email}")
+
 
 # Health check
 try:
