@@ -13,11 +13,11 @@ python-dotenv
 chromadb
 pypdf
 
-streamlit
-requests
-
 sse-starlette
 python-multipart
 
 langgraph
 google-search-results
+
+requests
+google-auth

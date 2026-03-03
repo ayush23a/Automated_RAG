@@ -3,6 +3,9 @@ import requests
 import uuid
 import os
 
+# Backend API URL — configurable for deployment
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+
 # Initialize session state for session ID and chat history
 if "session_id" not in st.session_state:
     st.session_state.session_id = None
@@ -35,21 +38,20 @@ if "token" in st.query_params:
 if not st.session_state.session_id:
     st.info("Please login to continue.")
     # Show login button
-    st.markdown(f'<a href="http://localhost:8000/login" target="_self"><button style="background-color: #4285F4; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Login with Google</button></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{API_URL}/login" target="_self"><button style="background-color: #4285F4; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Login with Google</button></a>', unsafe_allow_html=True)
     st.stop()
 
 # Top bar with profile icon in the right corner
 top_left, top_right = st.columns([9, 1])
 with top_right:
-    user_initial = st.session_state.user_email[0].upper() if "user_email" in st.session_state else "U"
-    with st.popover(f"👤"):
+    with st.popover("👤"):
         st.markdown(f"**{st.session_state.get('user_email', 'User')}**")
         st.caption(f"Session: `{st.session_state.session_id[:8]}...`")
         st.divider()
         if st.button("🚪 Logout", use_container_width=True):
             # Clear all auth state
             try:
-                requests.delete(f"http://localhost:8000/session/{st.session_state.session_id}")
+                requests.delete(f"{API_URL}/session/{st.session_state.session_id}")
             except:
                 pass
             st.session_state.session_id = None
@@ -60,16 +62,16 @@ with top_right:
 
 # Health check
 try:
-    requests.get("http://localhost:8000/docs", timeout=10)
+    requests.get(f"{API_URL}/docs", timeout=10)
 except requests.exceptions.ConnectionError:
-    st.error("Backend is not running on port 8000")
+    st.error("Backend is not running. Check API_URL configuration.")
     st.stop()
 
 st.sidebar.header("Session Management")
 if st.sidebar.button("🗑️ Clear Session & Start Fresh", use_container_width=True):
     # Call backend to delete session data
     try:
-        requests.delete(f"http://localhost:8000/session/{st.session_state.session_id}")
+        requests.delete(f"{API_URL}/session/{st.session_state.session_id}")
     except:
         pass
     # Keep user logged in but reset session data
@@ -88,7 +90,7 @@ with st.sidebar.form("upload_form", clear_on_submit=True):
     if submitted and uploaded_file is not None:
         with st.spinner("Uploading and indexing..."):
             response = requests.post(
-                "http://localhost:8000/upload",
+                f"{API_URL}/upload",
                 files={"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")},
                 data={"session_id": st.session_state.session_id}
             )
@@ -124,7 +126,7 @@ if query := st.chat_input("Ask a question..."):
         with st.spinner("Thinking..."):
             try:
                 resp = requests.post(
-                    "http://localhost:8000/query",
+                    f"{API_URL}/query",
                     json={"query": query, "session_id": st.session_state.session_id},
                     timeout=120
                 )
