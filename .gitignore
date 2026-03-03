@@ -5,3 +5,4 @@ __init__.py
 docs
 .python-version
 test_ddg.py
+get_client_id_instructions.txt

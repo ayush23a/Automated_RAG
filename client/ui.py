@@ -18,12 +18,7 @@ st.title("📄 Kriyamān AI")
 if "token" in st.query_params:
     token = st.query_params["token"]
     try:
-        from google.oauth2 import id_token
-        from google.auth.transport import requests as google_requests
-        # We decode the token here. For production, pass CLIENT_ID.
-        # idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), os.getenv("GOOGLE_CLIENT_ID"))
-        import jwt # Assuming PyJWT or simple decode is available via jwt library. Actually we have python-jwt? 
-        # python-jwt is different. Let's just hit google tokeninfo.
+        # Validate the token using Google's tokeninfo endpoint
         resp = requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}", timeout=5)
         if resp.status_code == 200:
             idinfo = resp.json()
@@ -43,10 +38,25 @@ if not st.session_state.session_id:
     st.markdown(f'<a href="http://localhost:8000/login" target="_self"><button style="background-color: #4285F4; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Login with Google</button></a>', unsafe_allow_html=True)
     st.stop()
 
-st.text(f"Session ID: {st.session_state.session_id}")
-if "user_email" in st.session_state:
-    st.success(f"Logged in as {st.session_state.user_email}")
-
+# Top bar with profile icon in the right corner
+top_left, top_right = st.columns([9, 1])
+with top_right:
+    user_initial = st.session_state.user_email[0].upper() if "user_email" in st.session_state else "U"
+    with st.popover(f"👤"):
+        st.markdown(f"**{st.session_state.get('user_email', 'User')}**")
+        st.caption(f"Session: `{st.session_state.session_id[:8]}...`")
+        st.divider()
+        if st.button("🚪 Logout", use_container_width=True):
+            # Clear all auth state
+            try:
+                requests.delete(f"http://localhost:8000/session/{st.session_state.session_id}")
+            except:
+                pass
+            st.session_state.session_id = None
+            st.session_state.chat_history = []
+            if "user_email" in st.session_state:
+                del st.session_state.user_email
+            st.rerun()
 
 # Health check
 try:
@@ -62,7 +72,9 @@ if st.sidebar.button("🗑️ Clear Session & Start Fresh", use_container_width=
         requests.delete(f"http://localhost:8000/session/{st.session_state.session_id}")
     except:
         pass
-    st.session_state.session_id = str(uuid.uuid4())
+    # Keep user logged in but reset session data
+    email = st.session_state.get("user_email", "")
+    st.session_state.session_id = str(uuid.uuid4()) + "_" + email.split("@")[0] if email else str(uuid.uuid4())
     st.session_state.chat_history = []
     st.rerun()
 
