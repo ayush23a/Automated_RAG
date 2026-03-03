@@ -1,4 +1,4 @@
-# Automated RAG
+# Kriyamān AI
 
 A stateful, Agentic Retrieval-Augmented Generation (RAG) system built with **LangGraph**. It acts as a hierarchical decision-making AI that intelligently switches between local knowledge, document-specific retrieval, and real-time web search based on user intent.
 
