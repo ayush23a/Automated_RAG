@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from backend.server.agent import rag_agent
-from backend.server.ingestion import ingest_docs
+from server.agent import rag_agent
+from server.ingestion import ingest_docs
 import shutil
 import os
 import chromadb
