@@ -3,10 +3,11 @@ import requests
 import uuid
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # extract current date 
-current_date = datetime.now().strftime("%A, %d %B %Y")
-current_time = datetime.now().strftime("%I:%M %p")
+current_date = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%A, %d %B %Y")
+current_time = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%I:%M %p")
 
 # Backend API URL — configurable for deployment
 API_URL = os.getenv("API_URL", "http://localhost:8000")
@@ -66,7 +67,7 @@ if st.session_state.session_id:
 else:
     st.sidebar.header("Guest")
     st.sidebar.caption(f"{current_date}")
-    st.sidebar.caption(f"{current_time}")
+    st.sidebar.caption(f"{current_time} IST ")
 
 # LOGIN BUTTON (only if not logged in)
 if not st.session_state.session_id:
