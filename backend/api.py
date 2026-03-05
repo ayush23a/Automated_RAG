@@ -36,6 +36,9 @@ class QueryRequest(BaseModel):
     query: str
     session_id: str = "default"
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 @app.post("/query")
 def query_rag(req: QueryRequest):
