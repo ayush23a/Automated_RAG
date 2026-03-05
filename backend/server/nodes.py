@@ -1,7 +1,7 @@
 from typing import Dict, Literal, cast
 from pydantic import BaseModel, Field
 from server.state import RAGState
-from server.llm import get_gemini, get_ollama
+from server.llm import get_gemini, get_ollama, get_groq
 from server.rag_chain import build_rag
 
 class IntentClassification(BaseModel):
@@ -12,8 +12,12 @@ class IntentClassification(BaseModel):
 def intent_classifier_node(state: RAGState) -> Dict:
     query = state["query"]
     
-    def use_ollama():
-        llm = get_ollama()
+    def use_groq():
+        llm = get_groq()
+        # Ensure we have the fallback model available
+        if not llm:
+            return {"intent": "casual"}
+            
         prompt = f"""Classify the following query into one of these categories:
 - casual: simple conversation, greetings, general knowledge.
 - fact_check: requires real-time factual checking (news, stats).
@@ -38,7 +42,7 @@ Output ONLY the category name.
 
     llm = get_gemini()
     if llm is None:
-        return use_ollama()
+        return use_groq()
 
     structured_llm = llm.with_structured_output(IntentClassification)
     
@@ -57,7 +61,7 @@ Query: "{query}"
         return {"intent": result.intent}
     except Exception as e:
         print(f"Gemini Intent Error: {e}")
-        return use_ollama()
+        return use_groq()
 
 def strategy_router(state: RAGState) -> Literal["doc_rag_node", "web_search_node", "final_synthesizer_node"]:
     intent = state.get("intent", "casual")
@@ -180,15 +184,18 @@ User Query: {query}
             response = llm.invoke(prompt)
         except Exception as e:
             print(f"Gemini Synthesizer Error: {e}")
-            llm = None  # Fallback to ollama
+            llm = None  # Fallback to groq
             
     if not llm:
-        llm = get_ollama()
-        try:
-            response = llm.invoke(prompt)
-        except Exception as e:
-            print(f"Ollama Synthesizer Error: {e}")
-            response = "Error generating response from local model."
+        llm = get_groq()
+        if llm:
+            try:
+                response = llm.invoke(prompt)
+            except Exception as e:
+                print(f"Groq Synthesizer Error: {e}")
+                response = "Error generating response from fallback model."
+        else:
+            response = "Error generating response and fallback model is missing API key."
             
     if response and hasattr(response, "content"):
         if isinstance(response.content, list):

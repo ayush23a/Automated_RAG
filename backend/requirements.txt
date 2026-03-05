@@ -3,6 +3,7 @@ uvicorn
 
 langchain
 langchain-ollama
+langchain-groq
 langchain-community
 langchain-google-genai
 langserve
